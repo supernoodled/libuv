@@ -57,11 +57,14 @@ check_c_compiler_flag(/wd4706 UV_LINT_NO_CONDITIONAL_ASSIGNMENT_MSVC)
 check_c_compiler_flag(/wd4996 UV_LINT_NO_UNSAFE_MSVC)
 
 check_c_compiler_flag(-Wall UV_LINT_WALL) # DO NOT use this under MSVC
+#seems to work fine for me - noodled
 
 # TODO: Place these into its own function
-check_c_compiler_flag(-Wno-unused-parameter UV_LINT_NO_UNUSED_PARAMETER)
-check_c_compiler_flag(-Wstrict-prototypes UV_LINT_STRICT_PROTOTYPES)
-check_c_compiler_flag(-Wextra UV_LINT_EXTRA)
+if(!MSVC) #not MSVC
+check_c_compiler_flag(-Wno-unused-parameter UV_LINT_NO_UNUSED_PARAMETER) #nope
+check_c_compiler_flag(-Wstrict-prototypes UV_LINT_STRICT_PROTOTYPES) #not msvc
+check_c_compiler_flag(-Wextra UV_LINT_EXTRA) #dont know what this is
+endif()
 
 check_c_compiler_flag(/utf-8 UV_LINT_UTF8_MSVC)
 
@@ -102,7 +105,10 @@ list(APPEND uv_cflags ${lint-no-conditional-assignment-msvc})
 list(APPEND uv_cflags ${lint-no-unsafe-msvc})
 list(APPEND uv_cflags ${lint-utf8-msvc} )
 
+#not in msvc (could possibly be in the future, but not now.)
+if(!MSVC)
 check_c_compiler_flag(-fno-strict-aliasing UV_F_STRICT_ALIASING)
+endif()
 list(APPEND uv_cflags $<$<BOOL:${UV_F_STRICT_ALIASING}>:-fno-strict-aliasing>)
 
 set(uv_sources
@@ -617,6 +623,9 @@ if(MSVC)
   install(TARGETS uv uv_a
           RUNTIME DESTINATION lib/$<CONFIG>
           ARCHIVE DESTINATION lib/$<CONFIG>)
+  #${env.RemoteMachineName} doesn't exist on Windows
+  add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+  add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 endif()
 
 message(STATUS "summary of build options:
